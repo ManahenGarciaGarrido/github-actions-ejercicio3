@@ -1,0 +1,39 @@
+name: Generación de Código desde OpenAPI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  generar-codigo:
+    name: Generar servidor Python-Flask desde OpenAPI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Generar código del servidor Python-Flask
+        run: |
+          java -jar openapi-generator-cli.jar generate \
+            -i api.yaml \
+            -g python-flask \
+            -o ./openapi_server
+
+      - name: Comprimir el código generado
+        run: |
+          zip -r openapi_server.zip openapi_server/
+
+      - name: Subir artefacto con el código generado
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-server-generated
+          path: openapi_server.zip
+          retention-days: 30
